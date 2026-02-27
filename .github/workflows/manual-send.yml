@@ -1,0 +1,22 @@
+name: 手动发送消息到WPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: '要发送的消息内容'
+        required: true
+        default: 'Hello WPS'
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 发送消息
+        env:
+          WPS_URL: ${{ secrets.WPS_WEBHOOK_URL }}
+          MSG: ${{ github.event.inputs.message }}
+        run: |
+          curl "${WPS_URL}" \
+            -H "Content-Type: application/json" \
+            -d "{\"msgtype\": \"text\", \"text\": {\"content\": \"${MSG}\"}}"
