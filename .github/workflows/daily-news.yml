@@ -1,4 +1,4 @@
-name: 测试推送到WPS
+name: 测试推送到WPS第二次
 
 on:
   workflow_dispatch:
@@ -9,8 +9,8 @@ jobs:
     steps:
       - name: 发送测试消息
         env:
-          WPS_KEY: ${{ secrets.WPS_WEBHOOK_KEY }}
+          WPS_URL: ${{ secrets.WPS_WEBHOOK_URL }}
         run: |
-          curl "https://qyapi.wps.cn/cgi-bin/webhook/send?key=${WPS_KEY}" \
+          curl "${WPS_URL}" \
             -H "Content-Type: application/json" \
-            -d '{"msgtype": "text", "text": {"content": "🎉 测试消息：GitHub Actions 连接成功！"}}'
+            -d '{"msgtype": "text", "text": {"content": "🎉 测试成功！"}}'
