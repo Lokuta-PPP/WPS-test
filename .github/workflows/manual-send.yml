@@ -1,4 +1,4 @@
-name: 手动发送消息到WPS
+name: 手动发送消息到WPS协作
 
 on:
   workflow_dispatch:
