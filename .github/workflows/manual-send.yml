@@ -1,4 +1,4 @@
-name: 手动发送消息到WPS协作
+name: Send to Bird Group
 
 on:
   workflow_dispatch:
