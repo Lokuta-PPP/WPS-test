@@ -1,0 +1,76 @@
+name: 每日新闻推送到WPS协作
+
+on:
+  schedule:
+    # 每天北京时间 9:00 和 18:00 推送（UTC时间需减8小时）
+    - cron: '0 1 * * *'   # UTC 01:00 = 北京时间 09:00
+    - cron: '0 10 * * *'  # UTC 10:00 = 北京时间 18:00
+  
+  # 允许手动触发（方便测试）
+  workflow_dispatch:
+
+jobs:
+  send-news:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 步骤1：检出代码（虽然可能用不到，但是标准做法）
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 步骤2：获取新闻并推送到WPS
+      - name: 获取新闻并推送
+        env:
+          WPS_KEY: ${{ secrets.WPS_WEBHOOK_KEY }}
+        run: |
+          # 构建Webhook完整URL
+          WEBHOOK_URL="https://qyapi.wps.cn/cgi-bin/webhook/send?key=${WPS_KEY}"
+          
+          # 获取当前日期
+          TODAY=$(date +"%Y年%m月%d日")
+          
+          # ===== 方案A：固定模板新闻（最简单，适合测试）=====
+          MESSAGE="🌅 ${TODAY} 早间新闻简报
+          
+📌 今日热点：
+1️⃣ 科技行业：AI技术持续突破，大模型应用落地加速
+2️⃣ 财经动态：全球市场震荡，投资者关注美联储政策
+3️⃣ 国内新闻：新能源汽车销量创新高，产业链持续景气
+
+💡 详细内容请关注各大新闻平台
+⏰ 更新时间：$(date +"%H:%M")"
+          
+          # 发送请求
+          curl -s "${WEBHOOK_URL}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"msgtype\": \"text\",
+              \"text\": {
+                \"content\": \"${MESSAGE}\"
+              }
+            }"
+          
+          echo "✅ 新闻推送完成"
+
+      # 步骤3：推送图文消息（更美观，可选）
+      - name: 推送图文新闻（可选）
+        env:
+          WPS_KEY: ${{ secrets.WPS_WEBHOOK_KEY }}
+        run: |
+          WEBHOOK_URL="https://qyapi.wps.cn/cgi-bin/webhook/send?key=${WPS_KEY}"
+          
+          curl -s "${WEBHOOK_URL}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "msgtype": "news",
+              "news": {
+                "articles": [
+                  {
+                    "title": "📰 每日新闻简报 '$(date +"%m月%d日")'",
+                    "description": "今日重点新闻一键速览，点击查看详情...",
+                    "url": "https://news.baidu.com",
+                    "picurl": "https://picsum.photos/400/300"
+                  }
+                ]
+              }
+            }' || echo "图文推送失败，但不影响主流程"
